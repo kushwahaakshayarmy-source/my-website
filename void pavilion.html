@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Builder — Visions in Form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&family=Jost:wght@200;300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a08;
+      --surface: #111110;
+      --gold: #c9a84c;
+      --gold-light: #e8cc80;
+      --cream: #f0ead8;
+      --muted: #7a7368;
+      --white: #faf8f2;
+      --accent: #3d6b5e;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.4s ease, width 0.3s, height 0.3s;
+      transform: translate(-50%, -50%);
+      opacity: 0.6;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 30%, rgba(201,168,76,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 20% 80%, rgba(61,107,94,0.08) 0%, transparent 50%);
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    }
+
+    nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2.5rem 5vw;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 3rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--cream); }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 5vw;
+      padding-top: 4rem;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 1s 0.2s forwards;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(4rem, 12vw, 11rem);
+      font-weight: 300;
+      line-height: 0.9;
+      color: var(--white);
+      opacity: 0;
+      animation: fadeUp 1s 0.4s forwards;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-subtitle {
+      max-width: 420px;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      line-height: 1.9;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeUp 1s 0.7s forwards;
+    }
+
+    .hero-scroll {
+      position: relative;
+      z-index: 10;
+      padding: 2.5rem 5vw;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 1s 1s forwards;
+    }
+
+    .scroll-line {
+      width: 60px;
+      height: 1px;
+      background: var(--gold);
+      animation: expandLine 1.5s 1.5s ease forwards;
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
+    .scroll-text {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── STATEMENT ── */
+    .statement {
+      padding: 10rem 5vw;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+      border-top: 1px solid rgba(201,168,76,0.1);
+    }
+
+    .statement-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14rem;
+      color: rgba(201,168,76,0.06);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .statement-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 3.5vw, 3rem);
+      font-weight: 300;
+      line-height: 1.4;
+      color: var(--cream);
+    }
+
+    .statement-text em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    /* ── PROJECTS ── */
+    .projects {
+      padding: 4rem 5vw 10rem;
+    }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      max-width: 80px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.4;
+    }
+
+    .project-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: 70vh;
+      margin-bottom: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .project-card:nth-child(even) .project-visual { order: 2; }
+    .project-card:nth-child(even) .project-info { order: 1; }
+
+    .project-visual {
+      position: relative;
+      overflow: hidden;
+      min-height: 500px;
+    }
+
+    /* Void Pavilion */
+    .void-scene {
+      width: 100%; height: 100%;
+      background: #050505;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .void-arch {
+      position: absolute;
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 50% 50% 0 0;
+      animation: breathe 4s ease-in-out infinite;
+    }
+    .void-arch:nth-child(1) { width: 200px; height: 280px; border-color: rgba(201,168,76,0.5); }
+    .void-arch:nth-child(2) { width: 260px; height: 340px; border-color: rgba(201,168,76,0.3); }
+    .void-arch:nth-child(3) { width: 320px; height: 400px; border-color: rgba(201,168,76,0.15); animation-delay: 0.5s; }
+    .void-arch:nth-child(4) { width: 380px; height: 460px; border-color: rgba(201,168,76,0.07); animation-delay: 1s; }
+
+    .void-floor {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .void-glow {
+      position: absolute;
+      width: 150px; height: 150px;
+      background: radial-gradient(circle, rgba(201,168,76,0.15), transparent 70%);
+      border-radius: 50%;
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .void-pillars {
+      position: absolute;
+      bottom: 0;
+      display: flex;
+      gap: 80px;
+    }
+    .void-pillar {
+      width: 3px;
+      height: 200px;
+      background: linear-gradient(to top, rgba(201,168,76,0.4), transparent);
+    }
+
+    /* Lotus Garden */
+    .lotus-scene {
+      width: 100%; height: 100%;
+      background: linear-gradient(180deg, #051a14 0%, #082018 50%, #0a1a10 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lotus-water {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 45%;
+      background: linear-gradient(180deg, transparent, rgba(10,40,30,0.8));
+      border-top: 1px solid rgba(100,200,150,0.15);
+    }
+
+    .lotus-reflection {
+      position: absolute;
+      bottom: 20%;
+      width: 200px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(100,200,150,0.2), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    .lotus-flower {
+      position: relative;
+      animation: float 5s ease-in-out infinite;
+    }
+
+    .petal {
+      position: absolute;
+      width: 50px;
+      height: 80px;
+      background: linear-gradient(180deg, rgba(210,240,220,0.9), rgba(150,220,180,0.6));
+      border-radius: 50% 50% 30% 30%;
+      transform-origin: bottom center;
+      filter: drop-shadow(0 0 8px rgba(100,220,160,0.3));
+    }
+
+    .petal:nth-child(1)  { transform: rotate(0deg) translateY(-30px); }
+    .petal:nth-child(2)  { transform: rotate(40deg) translateY(-30px); }
+    .petal:nth-child(3)  { transform: rotate(80deg) translateY(-30px); }
+    .petal:nth-child(4)  { transform: rotate(120deg) translateY(-30px); }
+    .petal:nth-child(5)  { transform: rotate(160deg) translateY(-30px); }
+    .petal:nth-child(6)  { transform: rotate(200deg) translateY(-30px); }
+    .petal:nth-child(7)  { transform: rotate(240deg) translateY(-30px); }
+    .petal:nth-child(8)  { transform: rotate(280deg) translateY(-30px); }
+    .petal:nth-child(9)  { transform: rotate(320deg) translateY(-30px); }
+
+    .lotus-center {
+      width: 40px; height: 40px;
+      background: radial-gradient(circle, #f0d080, #d4a030);
+      border-radius: 50%;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 0 20px rgba(220,180,60,0.4);
+    }
+
+    .lotus-stem {
+      position: absolute;
+      top: 40px; left: 50%;
+      width: 2px; height: 120px;
+      background: linear-gradient(180deg, rgba(100,180,120,0.6), transparent);
+      transform: translateX(-50%);
+    }
+
+    .lily-pad {
+      position: absolute;
+      bottom: 30%;
+      width: 100px; height: 40px;
+      background: rgba(40,120,70,0.4);
+      border-radius: 50% 50% 50% 0;
+      border: 1px solid rgba(60,160,90,0.3);
+    }
+    .lily-pad:nth-child(2) { right: 15%; bottom: 25%; width: 70px; opacity: 0.6; }
+
+    .water-ripple {
+      position: absolute;
+      bottom: 35%;
+      width: 20px; height: 8px;
+      border: 1px solid rgba(100,200,150,0.2);
+      border-radius: 50%;
+      animation: ripple 3s ease-out infinite;
+    }
+    .water-ripple:nth-child(2) { animation-delay: 1s; left: 30%; }
+    .water-ripple:nth-child(3) { animation-delay: 2s; right: 30%; }
+
+    /* Project Info */
+    .project-info {
+      background: var(--surface);
+      padding: 6rem 5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-info::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px; height: 0;
+      background: var(--gold);
+      transition: height 0.6s ease;
+    }
+    .project-card:hover .project-info::before { height: 100%; }
+
+    .project-index {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: rgba(201,168,76,0.08);
+      line-height: 1;
+      margin-bottom: 2rem;
+    }
+
+    .project-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+    }
+
+    .project-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--white);
+      margin-bottom: 2rem;
+    }
+
+    .project-desc {
+      font-size: 0.875rem;
+      line-height: 1.9;
+      color: var(--muted);
+      margin-bottom: 3rem;
+      max-width: 380px;
+    }
+
+    .project-specs {
+      display: flex;
+      gap: 3rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .spec-item {}
+    .spec-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(201,168,76,0.5);
+      margin-bottom: 0.4rem;
+    }
+    .spec-value {
+      font-size: 0.8rem;
+      color: var(--cream);
+    }
+
+    .project-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(201,168,76,0.3);
+      padding-bottom: 0.5rem;
+      transition: gap 0.3s, color 0.3s;
+      cursor: none;
+      width: fit-content;
+    }
+    .project-cta:hover { gap: 1.5rem; color: var(--gold-light); }
+    .project-cta::after { content: '→'; }
+
+    /* ── PHILOSOPHY ── */
+    .philosophy {
+      padding: 10rem 5vw;
+      border-top: 1px solid rgba(201,168,76,0.1);
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 8rem;
+      align-items: start;
+    }
+
+    .phil-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--gold-light);
+      position: sticky;
+      top: 4rem;
+    }
+
+    .phil-items { display: flex; flex-direction: column; gap: 4rem; }
+
+    .phil-item {
+      padding-bottom: 4rem;
+      border-bottom: 1px solid rgba(201,168,76,0.07);
+    }
+    .phil-item:last-child { border-bottom: none; }
+
+    .phil-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      opacity: 0.5;
+      margin-bottom: 1rem;
+    }
+
+    .phil-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .phil-body {
+      font-size: 0.875rem;
+      line-height: 1.9;
+      color: var(--muted);
+    }
+
+    /* ── CONTACT ── */
+    .contact {
+      padding: 8rem 5vw;
+      text-align: center;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact::before {
+      content: 'BUILD';
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22rem;
+      color: rgba(201,168,76,0.025);
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .contact-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 2.5rem;
+    }
+
+    .contact-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 7vw, 7rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 3rem;
+    }
+
+    .contact-heading em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .contact-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding: 1.2rem 3rem;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      text-decoration: none;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      transition: background 0.3s, color 0.3s;
+      cursor: none;
+      position: relative;
+      z-index: 1;
+    }
+    .contact-cta:hover {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    footer {
+      padding: 2.5rem 5vw;
+      border-top: 1px solid rgba(201,168,76,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      font-size: 1rem;
+    }
+
+    .footer-note {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes expandLine {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50%       { opacity: 1;   transform: scale(1.03); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50%       { transform: scale(1.3); opacity: 1; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.2; transform: scaleX(1); }
+      50%       { opacity: 0.6; transform: scaleX(1.4); }
+    }
+    @keyframes ripple {
+      0%   { transform: scale(1); opacity: 0.5; }
+      100% { transform: scale(8); opacity: 0; }
+    }
+
+    /* Scroll-triggered fade */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (max-width: 900px) {
+      .project-card { grid-template-columns: 1fr; }
+      .project-card:nth-child(even) .project-visual { order: 1; }
+      .project-card:nth-child(even) .project-info   { order: 2; }
+      .statement { grid-template-columns: 1fr; gap: 2rem; }
+      .philosophy { grid-template-columns: 1fr; gap: 3rem; }
+      .phil-heading { position: static; }
+      .project-info { padding: 3rem 2rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <nav>
+    <div class="logo">The Builder</div>
+    <ul class="nav-links">
+      <li><a href="#projects">Works</a></li>
+      <li><a href="#philosophy">Philosophy</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Architecture · Vision · Form</p>
+    <h1 class="hero-title">Building<br/><em>Beyond</em><br/>Form.</h1>
+    <p class="hero-subtitle">
+      Ideas that emerge from silence — spaces that hold weight, breath, and possibility. Each structure is a conversation between material and void.
+    </p>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">Scroll to explore</span>
+  </div>
+</section>
+
+<!-- STATEMENT -->
+<section class="statement reveal">
+  <div class="statement-number">I</div>
+  <p class="statement-text">
+    Every structure begins as <em>intuition</em> — a feeling before a blueprint, a shadow before a wall.
+  </p>
+</section>
+
+<!-- PROJECTS -->
+<section class="projects" id="projects">
+  <p class="section-label">Selected Works</p>
+
+  <!-- Void Pavilion -->
+  <div class="project-card reveal">
+    <div class="project-visual">
+      <div class="void-scene">
+        <div class="void-glow"></div>
+        <div class="void-arch"></div>
+        <div class="void-arch"></div>
+        <div class="void-arch"></div>
+        <div class="void-arch"></div>
+        <div class="void-pillars">
+          <div class="void-pillar"></div>
+          <div class="void-pillar"></div>
+          <div class="void-pillar"></div>
+        </div>
+        <div class="void-floor"></div>
+      </div>
+    </div>
+    <div class="project-info">
+      <div class="project-index">01</div>
+      <p class="project-tag">Conceptual Architecture</p>
+      <h2 class="project-title">Void<br/>Pavilion</h2>
+      <p class="project-desc">
+        A sanctuary where absence is the primary material. The pavilion is defined not by what it contains, but by what it removes — arches framing empty sky, columns holding nothing but intention. Visitors walk through structured nothingness.
+      </p>
+      <div class="project-specs">
+        <div class="spec-item">
+          <div class="spec-label">Typology</div>
+          <div class="spec-value">Open Pavilion</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Material</div>
+          <div class="spec-value">Stone, Air, Light</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Status</div>
+          <div class="spec-value">Concept</div>
+        </div>
+      </div>
+      <a class="project-cta" href="#">View Full Concept</a>
+    </div>
+  </div>
+
+  <!-- Lotus Garden -->
+  <div class="project-card reveal">
+    <div class="project-visual">
+      <div class="lotus-scene">
+        <div class="lily-pad"></div>
+        <div class="lily-pad"></div>
+        <div class="water-ripple"></div>
+        <div class="water-ripple"></div>
+        <div class="water-ripple"></div>
+        <div class="lotus-flower">
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="petal"></div>
+          <div class="lotus-center"></div>
+          <div class="lotus-stem"></div>
+        </div>
+        <div class="lotus-water"></div>
+        <div class="lotus-reflection"></div>
+      </div>
+    </div>
+    <div class="project-info">
+      <div class="project-index">02</div>
+      <p class="project-tag">Landscape Architecture</p>
+      <h2 class="project-title">Lotus<br/>Garden</h2>
+      <p class="project-desc">
+        A meditative water garden inspired by the lotus — rooted in mud, rising into light. Concentric stone paths mirror the flower's geometry. Water mirrors sky. The garden teaches stillness through structure.
+      </p>
+      <div class="project-specs">
+        <div class="spec-item">
+          <div class="spec-label">Typology</div>
+          <div class="spec-value">Water Garden</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Material</div>
+          <div class="spec-value">Stone, Water, Flora</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Status</div>
+          <div class="spec-value">Concept</div>
+        </div>
+      </div>
+      <a class="project-cta" href="#">View Full Concept</a>
+    </div>
+  </div>
+
+</section>
+
+<!-- PHILOSOPHY -->
+<section class="philosophy" id="philosophy">
+  <h2 class="phil-heading">The<br/>Way<br/>I<br/>Build.</h2>
+  <div class="phil-items">
+    <div class="phil-item reveal">
+      <div class="phil-num">01</div>
+      <h3 class="phil-title">Silence Before Structure</h3>
+      <p class="phil-body">Every great building begins with a long listening. What does the site want? What does the light do at dawn? What does the air feel like at dusk? I listen before I draw.</p>
+    </div>
+    <div class="phil-item reveal">
+      <div class="phil-num">02</div>
+      <h3 class="phil-title">Material as Memory</h3>
+      <p class="phil-body">Stone remembers pressure. Water remembers gravity. I choose materials not for aesthetics alone, but for the memory they carry — the story embedded in their formation.</p>
+    </div>
+    <div class="phil-item reveal">
+      <div class="phil-num">03</div>
+      <h3 class="phil-title">Space as Experience</h3>
+      <p class="phil-body">Architecture is not backdrop — it is protagonist. A corridor that compresses then releases. A threshold that transforms. Every spatial sequence is choreography.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <p class="contact-label">Let's Create Together</p>
+  <h2 class="contact-heading">Have an<br/><em>Idea?</em></h2>
+  <br/><br/>
+  <a class="contact-cta" href="mailto:hello@thebuilder.com">Begin a Conversation</a>
+</section>
+
+<footer>
+  <div class="footer-logo">The Builder</div>
+  <div class="footer-note">© 2026 — All Visions Reserved</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = (mx - 5) + 'px';
+    cursor.style.top  = (my - 5) + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width  = '60px';
+      ring.style.height = '60px';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width  = '36px';
+      ring.style.height = '36px';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  reveals.forEach(r => observer.observe(r));
+</script>
+
+</body>
+</html>
